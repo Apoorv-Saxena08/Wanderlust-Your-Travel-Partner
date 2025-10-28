@@ -28,14 +28,14 @@ router.route("/")
 );
 
 
-//new route
-router.get("/new", isLoggedIn, listingController.renderNewForm);
+//search suggestions route (most specific first)
+router.get("/search/suggestions", wrapAsync(listingController.searchSuggestions));
 
 //search route
 router.get("/search", wrapAsync(listingController.searchListings));
 
-//search suggestions route
-router.get("/search/suggestions", wrapAsync(listingController.searchSuggestions));
+//new route
+router.get("/new", isLoggedIn, listingController.renderNewForm);
 
 router.route("/:id")
 .get(//show

@@ -110,20 +110,20 @@ app.use((req,res,next) =>{
 //     res.send(registeredUSer); 
 // })
 
-// Root route redirects to listings
+// Route Handlers - Order matters!
+// Mount listings routes first
+app.use("/listings", listings);
+
+// Mount reviews routes (with mergeParams)
+app.use("/listings/:id/reviews", reviews);
+
+// User routes
+app.use("/", userRouter);
+
+// Root Route - Redirect to Listings
 app.get("/", (req, res) => {
     res.redirect("/listings");
 });
-
-// Mount route handlers
-app.use("/listings", listings);
-app.use("/listings/:id/reviews", reviews);
-app.use("/", userRouter);
-
-// Edit route
-app.get("/listings/:id/edit",
-    isLoggedIn, isOwner,
-    wrapAsync(listingController.editListing));
 
 
 //jb sare route check krlega to yhn ayega and * means all
