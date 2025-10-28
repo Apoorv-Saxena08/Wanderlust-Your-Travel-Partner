@@ -151,6 +151,17 @@ app.use((err,req,res,next)=>{
     res.status(status).render("error.ejs",{message});
 })
 
-app.listen(8080 , ()=>{
-    console.log("Server is starting at port 8080");
-})
+// Root route redirect to listings
+app.get("/", (req, res) => {
+    res.redirect("/listings");
+});
+
+// Error handler for undefined routes
+app.all("*", (req, res, next) => {
+    next(new ExpressError(404, "Page not found"));
+});
+
+const port = process.env.PORT || 8080;
+app.listen(port, () => {
+    console.log(`Server is starting at port ${port}`);
+});
