@@ -2,6 +2,13 @@ if(process.env.NODE_ENV != "production") {
     require('dotenv').config();
 }
 
+// Environment Variables
+const dbUrl = process.env.ATLASDB_URL;
+if (!dbUrl) {
+    console.error("ATLASDB_URL environment variable is not set!");
+    process.exit(1);
+}
+
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
