@@ -1,0 +1,179 @@
+<style>
+   .btn-search{
+    background-color: #fe424d;
+    color: white;
+    border-radius: 25px;
+    padding: 0 1rem 0 1rem;
+   }
+   .btn-search:hover{
+    background-color: #fe424d;
+    color: white;
+   }
+   .btn-search i {
+    display: inline;
+    margin-right: 0.5rem;
+   }
+   .inp-search{
+    border-radius: 25px;
+    padding: 0.5rem 3rem 0.5rem 3rem;
+    /* font-size: 0.9rem; */
+   }
+</style>
+
+<nav class="navbar navbar-expand-md bg-body-light border-bottom sticky-top">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/listings"
+      ><i class="fa-solid fa-compass"></i
+    ></a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNavAltMarkup"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+        <a class="nav-link" href="/listings">Explore</a>
+      </div>
+
+      <div class="navbar-nav ms-auto">
+        <form class="d-flex position-relative" action="/listings/search" method="GET">
+          <input
+            class="form-control me-2 inp-search"
+            type="search"
+            name="q"
+            placeholder="Search Destination"
+            autocomplete="off"
+            id="searchInput"
+            required
+          />
+          <div id="searchSuggestions" class="position-absolute bg-white w-100 shadow-sm rounded-3 d-none" style="top: 100%; z-index: 1000;">
+          </div>
+          <button class="btn btn-search" type="submit"><i class="fa-solid fa-magnifying-glass"></i>Search</button>
+        </form>
+      </div>
+
+      <div class="navbar-nav ms-auto">
+        <a class="nav-link" href="/listings/new">Airbnb your home</a>
+        <% if(!currUser) { %>
+        <a class="nav-link" href="/signup"><b>Sign Up</b></a>
+        <a class="nav-link" href="/login"><b>Login</b></a>
+        <% } %> <% if(currUser) { %>
+        <a class="nav-link" href="/logout"><b>Log Out</b></a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<script>
+  const searchInput = document.getElementById('searchInput');
+  const suggestionsContainer = document.getElementById('searchSuggestions');
+  let debounceTimer;
+
+  // Style for suggestions
+  const suggestionStyles = `
+    .suggestion-item {
+      padding: 8px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+    }
+    .suggestion-item:last-child {
+      border-bottom: none;
+    }
+    .suggestion-item:hover {
+      background-color: #f8f9fa;
+    }
+    .suggestion-title {
+      font-weight: bold;
+    }
+    .suggestion-location {
+      font-size: 0.9em;
+      color: #666;
+    }
+  `;
+
+  // Add styles to document
+  const styleSheet = document.createElement("style");
+  styleSheet.textContent = suggestionStyles;
+  document.head.appendChild(styleSheet);
+
+  // Function to fetch suggestions
+  async function fetchSuggestions(query) {
+    try {
+      const response = await fetch(`/listings/search/suggestions?q=${encodeURIComponent(query)}`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+      return [];
+    }
+  }
+
+  // Function to display suggestions
+  function displaySuggestions(suggestions) {
+    if (suggestions.length === 0) {
+      suggestionsContainer.classList.add('d-none');
+      return;
+    }
+
+    suggestionsContainer.innerHTML = suggestions.map(suggestion => `
+      <div class="suggestion-item" data-title="${suggestion.title}" data-location="${suggestion.location}" data-country="${suggestion.country}">
+        <div class="suggestion-title">${suggestion.title}</div>
+        <div class="suggestion-location">${suggestion.location}, ${suggestion.country}</div>
+      </div>
+    `).join('');
+
+    suggestionsContainer.classList.remove('d-none');
+  }
+
+  // Event listener for input changes
+  searchInput.addEventListener('input', (e) => {
+    clearTimeout(debounceTimer);
+    const query = e.target.value.trim();
+
+    if (query.length < 2) {
+      suggestionsContainer.classList.add('d-none');
+      return;
+    }
+
+    // Debounce the API call
+    debounceTimer = setTimeout(async () => {
+      const suggestions = await fetchSuggestions(query);
+      displaySuggestions(suggestions);
+    }, 300);
+  });
+
+  // Event listener for clicking on suggestions
+  suggestionsContainer.addEventListener('click', (e) => {
+    const suggestionItem = e.target.closest('.suggestion-item');
+    if (suggestionItem) {
+      // Use title as the search term for more accurate results
+      searchInput.value = suggestionItem.dataset.title;
+      suggestionsContainer.classList.add('d-none');
+      searchInput.closest('form').submit(); // Submit the form when suggestion is clicked
+    }
+  });
+
+  // Hide suggestions when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+      suggestionsContainer.classList.add('d-none');
+    }
+  });
+
+  // Handle enter key on suggestions
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !suggestionsContainer.classList.contains('d-none')) {
+      e.preventDefault();
+      const firstSuggestion = suggestionsContainer.querySelector('.suggestion-item');
+      if (firstSuggestion) {
+        searchInput.value = firstSuggestion.dataset.title;
+        suggestionsContainer.classList.add('d-none');
+        searchInput.closest('form').submit(); // Submit the form when enter is pressed
+      }
+    }
+  });
+</script>
