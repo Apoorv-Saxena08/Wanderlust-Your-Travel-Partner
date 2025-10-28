@@ -110,33 +110,19 @@ app.use((req,res,next) =>{
 //     res.send(registeredUSer); 
 // })
 
-app.use("/listings" , listings);
+// Root route redirects to listings
+app.get("/", (req, res) => {
+    res.redirect("/listings");
+});
+
+// Mount route handlers
+app.use("/listings", listings);
 app.use("/listings/:id/reviews", reviews);
-app.use("/" , userRouter);
-// app.get("/testListing" , async (req,res)=>{
-//     let sampleListing = new Listing({
-//         title:"My Home",
-//         description:"By the beach",
-//         price:1200,
-//         location:"Cp,Delhi",
-//         country:"India",
-//     });
-//     await sampleListing.save();
-//     console.log("samplle was saved");
-//     res.send("successful");
-// });
+app.use("/", userRouter);
 
-//Create : new and create route
-// new -> GET at /listings/new -> form milega hen on submitting..
-//Create request -> POST at /listings
-
-//Update  : Edit route And Update route
-//Edit : GET @ /listings/:id/edit ->edit form _> submit
-//Update : PUT @ /listings/:id
-
-//edit route 
+// Edit route
 app.get("/listings/:id/edit",
-    isLoggedIn , isOwner,
+    isLoggedIn, isOwner,
     wrapAsync(listingController.editListing));
 
 
