@@ -1,14 +1,10 @@
-if(process.env.NODE_ENV != "production")
-require('dotenv').config();
-
-//console.log(process.env.SECRET);
+if(process.env.NODE_ENV != "production") {
+    require('dotenv').config();
+}
 
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
-const Listing = require("./models/listing.js");
-
-const dbUrl = process.env.ATLASDB_URL;
 const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
@@ -99,54 +95,22 @@ app.use((req,res,next) =>{
     next();
 })
 
-//for auth
-// app.get("/demouser" , async(req,res)=>{
-//     let fakeUser = new User({
-//         email : "student@gmail.com",
-//         username:"college-student"
-//     })
-//     //                                        user ,     pwd
-//     let registeredUSer = await User.register(fakeUser , "helloworld");
-//     res.send(registeredUSer); 
-// })
+// Routes
+app.get("/", (req, res) => {
+    res.redirect("/listings");
+});
 
-// Route Handlers - Order matters!
-// Mount listings routes first
 app.use("/listings", listings);
-
-// Mount reviews routes (with mergeParams)
 app.use("/listings/:id/reviews", reviews);
-
-// User routes
 app.use("/", userRouter);
 
-// Root Route - Redirect to Listings
-app.get("/", (req, res) => {
-    res.redirect("/listings");
+// Simple error handler
+app.use((err, req, res, next) => {
+    const { status = 500, message = "Something went wrong!" } = err;
+    res.status(status).render("error.ejs", { message });
 });
 
-
-//jb sare route check krlega to yhn ayega and * means all
-// app.all("*" , (req,res,next)=>{
-//     next(new ExpressError(404,"Page not found"));
-// })
-
-app.use((err,req,res,next)=>{
-    let {status=500,message="Something went wrong"} = err;
-    // res.status(status).send(message);
-    res.status(status).render("error.ejs",{message});
-})
-
-// Root route redirect to listings
-app.get("/", (req, res) => {
-    res.redirect("/listings");
-});
-
-// Error handler for undefined routes
-app.all("*", (req, res, next) => {
-    next(new ExpressError(404, "Page not found"));
-});
-
+// Start server
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
     console.log(`Server is starting at port ${port}`);
